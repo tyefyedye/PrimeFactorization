@@ -63,9 +63,8 @@ public class PrimeFactorization {
                 (factor.equals(primeFactors.lastKey()) ? "" : " * "));
             }
         } else if (method.equals("quadratic")) {
-            int maxSmoothNumbers = Integer.parseInt(args[3]);
-            QuadraticSieve q = new QuadraticSieve(bound, maxSmoothNumbers);
-            BigInteger a = q.getFactor(n);
+            QuadraticSieve q = new QuadraticSieve();
+            BigInteger a = q.getFactor(bound, n);
         } 
     }
 }

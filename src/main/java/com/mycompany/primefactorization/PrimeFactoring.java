@@ -1,6 +1,8 @@
 package com.mycompany.primefactorization;
 
 import java.math.BigInteger;
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -8,6 +10,7 @@ public abstract class PrimeFactoring {
     public final BigInteger BI_ZERO = BigInteger.ZERO;
     public final BigInteger BI_ONE = BigInteger.ONE;
     public final BigInteger BI_TWO = BigInteger.TWO;
+    public final BigDecimal BI_TEN = BigDecimal.valueOf(10);
     
     public BigInteger gcd(BigInteger n, BigInteger m){
         if (n.equals(BI_ZERO)) return m;
@@ -21,20 +24,33 @@ public abstract class PrimeFactoring {
     
     public ArrayList<Long> sieveOfEratosthenes(long b){
         ArrayList<Long> primes = new ArrayList();
+        boolean[] numsToCheck = new boolean[(int) b];
+        Arrays.fill(numsToCheck, true);
         
-        for(long i = 2; i <= b; i++) primes.add(i);
+        //for(long i = 2; i <= b; i++) primes.add(i);
 
-        long limit = (long) Math.round(Math.sqrt(b));
+        int limit = (int) Math.round(Math.sqrt(b));
         
-        int i = 0; long p, q;
-        while(primes.get(i) <= limit){
-            p = primes.get(i);
-            for(int j = 0; j < primes.size(); j++){
-                q = primes.get(j);
-                if (q != p && q % p == 0) primes.remove(j);
+        int p;
+        for (int i = 2; i <= limit; i++){
+            if(numsToCheck[i]) {
+                p = (int) Math.pow(i, 2);
+                for (int j = p; j < b; j++)
+                    if (j % i == 0) numsToCheck[j] = false;
             }
-            i++;
         }
+        
+        for (int k = 2; k < b; k++) if(numsToCheck[k]) primes.add((long) k);
+        
+//        int i = 0; long p, q;
+//        while(primes.get(i) <= limit){
+//            p = primes.get(i);
+//            for(int j = 0; j < primes.size(); j++){
+//                q = primes.get(j);
+//                if (q != p && q % p == 0) primes.remove(j);
+//            }
+//            i++;
+//        }
         return primes;
     }
     
@@ -80,6 +96,18 @@ public abstract class PrimeFactoring {
         Random rand = new Random();
         BigInteger randNum = new BigInteger(bitLength, rand);
         return randNum;
+    }
+    
+    public long getBound(BigInteger n){
+        int numDigits = n.toString().length();
+        
+        BigDecimal bd = new BigDecimal(n);
+        double val = bd.divide(BI_TEN.pow(numDigits)).doubleValue();
+        double logN = numDigits * Math.log(10) + Math.log(val);
+        
+        double l = Math.exp(Math.sqrt(logN * Math.log(logN)));
+        
+        return (long) Math.ceil(Math.pow(l, 1/Math.sqrt(2)));
     }
     
     public boolean checkIfPrime(BigInteger n, int bound) {

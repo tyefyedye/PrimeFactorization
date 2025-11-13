@@ -12,25 +12,20 @@ import java.util.Collections;
 import java.util.TreeMap;
 
 public class QuadraticSieve extends PrimeFactoring {
-    private long bound;
-    private int maxSmoothNumbers;
-    private ArrayList<Long> primes;
     
-    public QuadraticSieve(long bound, int maxSmoothNumbers){
-        this.bound = bound;
-        this.maxSmoothNumbers = maxSmoothNumbers;
-        primes = sieveOfEratosthenes(this.bound);
-        
-    }
+    public QuadraticSieve(){ }
     
-    public BigInteger getFactor(BigInteger n){
+    public BigInteger getFactor(long b, BigInteger n){
+        long bound; ArrayList<Long> primes;
         BigInteger p, pMinusOne, qr, a, t, r;
         BigInteger[] squareRoots = new BigInteger[2], pos = new BigInteger[2];
         ArrayList<BigInteger> factorBase = new ArrayList();
         TreeMap<BigInteger, ArrayList<Integer>> smoothNumbers = new TreeMap();
         
+        if(b == -1) bound = getBound(n); else bound = b;
+        primes = sieveOfEratosthenes(bound);
         
-        for(long prime : primes){
+        for (long prime : primes){;
             p = BigInteger.valueOf(prime);
             pMinusOne = p.subtract(BI_ONE);
             qr = n.modPow(pMinusOne.divide(BI_TWO), p);
@@ -54,7 +49,7 @@ public class QuadraticSieve extends PrimeFactoring {
             ArrayList<Integer> pExp;
             for(BigInteger ps : pos){
                 count = 0; j = BI_ONE;
-                while (count < maxSmoothNumbers && !j.equals(limit)){
+                while (count < 5 && !j.equals(limit)){
                     i = 0;
                     pExp = new ArrayList(Collections.nCopies(numFactors, 0));
                     t = polynomial(a.add(ps.multiply(j)), n);
@@ -76,9 +71,9 @@ public class QuadraticSieve extends PrimeFactoring {
         }
         
         ArrayList<Integer> arr =  new ArrayList();
-        for(BigInteger b : smoothNumbers.keySet()){
-            arr = smoothNumbers.get(b);
-            System.out.println(b + ", " + arr);
+        for(BigInteger bi : smoothNumbers.keySet()){
+            arr = smoothNumbers.get(bi);
+            System.out.println(bi + ", " + arr);
         }
         
         return BI_ONE;
