@@ -63,6 +63,7 @@ public class PrimeFactorization {
                 (factor.equals(primeFactors.lastKey()) ? "" : " * "));
             }
         } else if (method.equals("quadratic")) {
+            System.out.printf("Number to factor: %d\n", n);
             QuadraticSieve q = new QuadraticSieve();
             BigInteger a = q.getFactor(bound, n);
         } 

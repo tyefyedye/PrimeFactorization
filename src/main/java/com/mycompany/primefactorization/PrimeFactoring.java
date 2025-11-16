@@ -26,8 +26,6 @@ public abstract class PrimeFactoring {
         ArrayList<Long> primes = new ArrayList();
         boolean[] numsToCheck = new boolean[(int) b];
         Arrays.fill(numsToCheck, true);
-        
-        //for(long i = 2; i <= b; i++) primes.add(i);
 
         int limit = (int) Math.round(Math.sqrt(b));
         
@@ -41,16 +39,7 @@ public abstract class PrimeFactoring {
         }
         
         for (int k = 2; k < b; k++) if(numsToCheck[k]) primes.add((long) k);
-        
-//        int i = 0; long p, q;
-//        while(primes.get(i) <= limit){
-//            p = primes.get(i);
-//            for(int j = 0; j < primes.size(); j++){
-//                q = primes.get(j);
-//                if (q != p && q % p == 0) primes.remove(j);
-//            }
-//            i++;
-//        }
+
         return primes;
     }
     
