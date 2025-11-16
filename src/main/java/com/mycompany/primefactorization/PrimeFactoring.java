@@ -33,8 +33,7 @@ public abstract class PrimeFactoring {
         for (int i = 2; i <= limit; i++){
             if(numsToCheck[i]) {
                 p = (int) Math.pow(i, 2);
-                for (int j = p; j < b; j++)
-                    if (j % i == 0) numsToCheck[j] = false;
+                for (int j = p; j < b; j += i) numsToCheck[j] = false;
             }
         }
         

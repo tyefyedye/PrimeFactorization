@@ -23,10 +23,11 @@ public class QuadraticSieve extends PrimeFactoring {
         TreeMap<BigInteger, int[]> smoothNumbers = new TreeMap();
         
         System.out.println("Calculating bound...");
-        if (b == -1) bound = getBound(n) + 1; else bound = b;
+        if (b == -1) bound = getBound(n); else bound = b;
         System.out.println("Bound B = " + bound);
         System.out.println("Generating primes <= B...");
         primes = sieveOfEratosthenes(bound + 1);
+        System.out.println(primes.size() + " primes found.");
         
         System.out.println("Reducing primes to quadratic residues over N only...");
         for (long prime : primes){
