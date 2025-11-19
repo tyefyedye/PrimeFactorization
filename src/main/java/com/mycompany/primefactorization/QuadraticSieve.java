@@ -17,19 +17,25 @@ import java.util.TreeMap;
 
 public class QuadraticSieve extends PrimeFactoring {
     private ArrayList<Integer> dependents = new ArrayList();
+    public final BigInteger BI_THREE = BigInteger.valueOf(3);
+    public final BigInteger BI_NINE = BigInteger.valueOf(9);
+    public final BigInteger BI_TEN = BigInteger.valueOf(10);
     
     public QuadraticSieve(){ }
     
-    public BigInteger getFactor(long b, BigInteger n){
+    public BigInteger getFactor(BigInteger n, long b){
+        if(n.equals(BI_NINE)) return BI_THREE;
+        else if (n.compareTo(BI_TEN) == -1) return BI_TWO;
+        
         long bound; ArrayList<Long> primes;
-        BigInteger p, pMinusOne, qr, a;
+        BigInteger p, pMinusOne, qr, a, factor;
         ArrayList<BigInteger> factorBase = new ArrayList();
         ArrayList<Root> roots = new ArrayList();
         TreeMap<BigInteger, BigInteger> smoothNumbers = new TreeMap();
         TreeMap<BigInteger, double[]> smoothNumbersPrimeFactors = new TreeMap();
         
         System.out.println("Calculating bound...");
-        if (b == -1) bound = getBound(n); else bound = b;
+        if (b == -1) bound = getBound(n) + 1; else bound = b;
         System.out.println("Bound B = " + bound);
         System.out.println("Generating primes <= B...");
         primes = sieveOfEratosthenes(bound + 1);
@@ -43,12 +49,16 @@ public class QuadraticSieve extends PrimeFactoring {
             if (qr.equals(BI_ONE)) factorBase.add(p);
         }
         int numFactors = factorBase.size();
-        System.out.println(factorBase.size() + " quadratic residues found.");
+        System.out.println(numFactors + " quadratic residues found.");
+        
+//        for(BigInteger f : factorBase) System.out.print(f + " ");
+//        System.out.println();
         
         a = n.sqrt();
+//        System.out.println(a);
         
         System.out.println("Getting roots over factor base...");
-        BigInteger[] squareRoots = new BigInteger[2];
+        BigInteger[] squareRoots;
         BigInteger r1, r2;
         for (BigInteger fb : factorBase){
             if (fb.equals(BI_TWO)) roots.add(new Root(1, 2));
@@ -70,7 +80,7 @@ public class QuadraticSieve extends PrimeFactoring {
             root = BigInteger.valueOf(roots.get(i % numFactors).getRoot());
             t = polynomial(a, root, n);
             r = t;
-            if(!smoothNumbers.containsKey(t)){
+            if(!t.equals(BI_ZERO) && !smoothNumbers.containsKey(t)){
                 j = 0;
                 pExp = new double[numFactors];
                 Arrays.fill(pExp, 0);
@@ -78,7 +88,7 @@ public class QuadraticSieve extends PrimeFactoring {
                 while (j < numFactors && !r.equals(BI_ONE)){
                     f = factorBase.get(j);
                     if (!r.mod(f).equals(BI_ZERO)) j++;
-                    else { r = r.divide(f); pExp[j] = (pExp[j] + 1); }
+                    else { r = r.divide(f); pExp[j] = (pExp[j] + 1) % 2; }
                 }
                 if (j < numFactors){
                     smoothNumbers.put(t, a.add(root));
@@ -98,14 +108,36 @@ public class QuadraticSieve extends PrimeFactoring {
         double[][] matrix = new double[numFactors][numFactors];
         for(BigInteger sn : smoothNumbers.keySet()){
             arr = smoothNumbersPrimeFactors.get(sn);
-            if (arr != null) { matrix[k] = toModuloArray(arr, 2); k++; } 
-        };
+            if (arr != null) { /*System.out.println(sn + " " + smoothNumbers.get(sn));*/ matrix[k] = arr; k++; } 
+        }
+        
+//        for (int g = 0; g < numFactors; g++){
+//            for (int h = 0; h < numFactors; h++){
+//                System.out.print((int) matrix[g][h] + " ");
+//            }
+//            System.out.println();
+//        }
         
         System.out.println("Performing Gaussian Elimination on matrix...");
+        dependents.clear();
         matrix = gaussianElimination(matrix, numSmoothNumbers);
         System.out.println("Gaussian Elimination complete");
         
-        return BI_ONE;
+//        for (int g = 0; g < numFactors; g++){
+//            for (int h = 0; h < numFactors; h++){
+//                System.out.print((int) matrix[g][h] + " ");
+//            }
+//            System.out.println();
+//        }
+//        
+//        for(int d : dependents) System.out.print(d + " ");
+//        System.out.println();
+        
+        System.out.println("Finding factor...");
+        factor = findFactor(matrix, numFactors, smoothNumbers, n);
+        System.out.println("Factor found!");
+        
+        return factor;
     }
     
     private BigInteger polynomial(BigInteger a, BigInteger i, BigInteger n) {
@@ -116,7 +148,7 @@ public class QuadraticSieve extends PrimeFactoring {
     private double[][] gaussianElimination(double[][] matrix, int length){
         ModuloInteger.setModulus(LargeInteger.valueOf(2));
         int ix; DenseVector<ModuloInteger> c, r, a;
-        ArrayList<DenseVector<ModuloInteger>> columns = new ArrayList<DenseVector<ModuloInteger>>();
+        ArrayList<DenseVector<ModuloInteger>> columns = new ArrayList();
         boolean markedRows[] = new boolean[length]; Arrays.fill(markedRows, false);
 
         for (int i = 0; i < length; i++) {
@@ -127,15 +159,12 @@ public class QuadraticSieve extends PrimeFactoring {
             columns.add(DenseVector.valueOf(ml));
         }
         
-//        for(DenseVector dv : columns) System.out.println(dv);
-//        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         
         for (int i = 0; i < length; i++){
             ix = 0; c = columns.get(i);
             while (ix < length && !c.get(ix).equals(MI_1)) ix++;
             if (ix < length) {
                 markedRows[ix] = true;
-//                System.out.println("Row " + ix + " is marked");
                 for (int j = 0; j < columns.size(); j++){
                     r = columns.get(j);
                     if (!r.equals(c) && r.get(ix).equals(MI_1)){
@@ -145,8 +174,6 @@ public class QuadraticSieve extends PrimeFactoring {
                         
                 }
             }
-//            for(DenseVector dv : columns) System.out.println(dv);
-//            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         }
         
         double[][] newMatrix = new double[length][length];
@@ -161,6 +188,74 @@ public class QuadraticSieve extends PrimeFactoring {
         return newMatrix;
     }
     
+    private BigInteger findFactor(double[][] matrix, int length,
+        TreeMap<BigInteger, BigInteger> smoothNumbers, BigInteger n) {
+        BigInteger factor = BI_ONE, smooth = BI_ONE, product = BI_ONE, sqrtProduct = BI_ONE;
+        ArrayList<DenseVector<ModuloInteger>> rows = new ArrayList<DenseVector<ModuloInteger>>();
+        ArrayList<Integer> zeroSumRows = new ArrayList();
+        int ix = 0, d = 0, numDependents = dependents.size(); boolean factorFound = false;
+        ModuloInteger.setModulus(LargeInteger.valueOf(2));
+        
+        for (int i = 0; i < length; i++) {
+            ArrayList<ModuloInteger> ml = new ArrayList<ModuloInteger>();
+            for (int j = 0; j < length; j++) {
+                ml.add(matrix[i][j] == 1 ? MI_1 : MI_0);
+            }
+            rows.add(DenseVector.valueOf(ml));
+        }
+        
+        while(ix < numDependents && !factorFound){
+            d = dependents.get(ix);
+            zeroSumRows = getZeroSumRows(d, rows);
+            
+            smooth = product = sqrtProduct = BI_ONE;
+            
+//            for(int zsr : zeroSumRows) System.out.print(zsr + " ");
+//            System.out.println();
+            
+            for (int zsr : zeroSumRows) {
+                smooth = (BigInteger) smoothNumbers.keySet().toArray()[zsr];
+                product = product.multiply(smoothNumbers.get(smooth));
+                sqrtProduct = sqrtProduct.multiply(smooth);
+            }
+
+            sqrtProduct = sqrtProduct.sqrt();
+            factor = gcd(product.subtract(sqrtProduct), n);
+            if (!factor.equals(BI_ONE) && !factor.equals(n)) factorFound = true;
+            
+            ix++;
+        }
+        
+        return factor;
+    }
+    
+    private ArrayList<Integer> getZeroSumRows(int d, ArrayList<DenseVector<ModuloInteger>> rows){
+        ArrayList<Integer> zeroSumRows = new ArrayList();
+        DenseVector<ModuloInteger> mainRow = rows.get(d), rowToCheck, rowSum, rowTemp;
+        
+        zeroSumRows.add(d); rowSum = mainRow;
+        int numOnes = 0, ix = 0, newNumOnes; 
+        for(int i = 0; i < rowSum.getDimension(); i++)
+            if(rowSum.get(i).equals(MI_1)) numOnes++;
+        
+        while(ix < rows.size() && numOnes != 0){
+            rowToCheck = rows.get(ix);
+            if(ix != d){
+                rowTemp = rowToCheck.plus(rowSum);
+                newNumOnes = 0;
+                for(int i = 0; i < rowTemp.getDimension(); i++)
+                    if(rowTemp.get(i).equals(MI_1)) newNumOnes++;
+                if (newNumOnes < numOnes) { 
+                    zeroSumRows.add(ix);
+                    numOnes = newNumOnes;
+                    rowSum = rowTemp;
+                }
+            }
+            ix++;
+        }
+        
+        return zeroSumRows;
+    }
     
     public record Root (long root, long increment) {
         public Root incrementRoot() { return new Root(root + increment, increment); }

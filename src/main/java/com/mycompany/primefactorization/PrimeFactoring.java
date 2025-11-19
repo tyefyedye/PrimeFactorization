@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Random;
 
-public abstract class PrimeFactoring {
+public class PrimeFactoring {
     public final BigInteger BI_ZERO = BigInteger.ZERO;
     public final BigInteger BI_ONE = BigInteger.ONE;
     public final BigInteger BI_TWO = BigInteger.TWO;
@@ -16,6 +16,8 @@ public abstract class PrimeFactoring {
     
     public final ModuloInteger MI_0 = ModuloInteger.ZERO;
     public final ModuloInteger MI_1 = ModuloInteger.ONE;
+    
+    public PrimeFactoring() { }
     
     public BigInteger gcd(BigInteger n, BigInteger m){
         if (n.equals(BI_ZERO)) return m;
