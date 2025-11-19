@@ -51,7 +51,6 @@ public class PrimeFactorization {
                 System.out.printf("Factors found: [%d, %d]\n", f, f2);
                 checkIfPrimes(f, f2);
                 count = (limit != 0 ? count + 1 : 0);
-                System.out.println(count);
             }
             printPrimeFactors(n);
         } 
