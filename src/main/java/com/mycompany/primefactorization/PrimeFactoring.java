@@ -1,5 +1,7 @@
 package com.mycompany.primefactorization;
 
+import org.jscience.mathematics.number.ModuloInteger;
+
 import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -11,6 +13,9 @@ public abstract class PrimeFactoring {
     public final BigInteger BI_ONE = BigInteger.ONE;
     public final BigInteger BI_TWO = BigInteger.TWO;
     public final BigDecimal BI_TEN = BigDecimal.valueOf(10);
+    
+    public final ModuloInteger MI_0 = ModuloInteger.ZERO;
+    public final ModuloInteger MI_1 = ModuloInteger.ONE;
     
     public BigInteger gcd(BigInteger n, BigInteger m){
         if (n.equals(BI_ZERO)) return m;
@@ -140,5 +145,17 @@ public abstract class PrimeFactoring {
             }
         }
         return isProbablePrime;
+    }
+        
+    public double[] toModuloArray(double[] arr, int mod){
+        double[] modArr = new double[arr.length];
+        for (int i = 0; i < arr.length; i++) modArr[i] = arr[i] % mod;
+        return modArr;
+    }
+    
+    public String printArray(double[] arr){
+        String output = "[";
+        for (int i = 0; i < arr.length-1; i++) output += ((int) arr[i]) + ", ";
+        return output + ((int) arr[arr.length-1]) + "]";
     }
 }
