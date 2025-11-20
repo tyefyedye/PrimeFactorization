@@ -25,7 +25,7 @@ public class QuadraticSieve extends PrimeFactoring {
     
     public QuadraticSieve(){ }
     
-    public BigInteger getFactor(BigInteger n, long b){
+    public BigInteger getFactor(BigInteger n, long b, int interval){
         if(n.equals(BI_NINE)) return BI_THREE;
         else if (n.compareTo(BI_TEN) == -1) return BI_TWO;
         
@@ -106,7 +106,7 @@ public class QuadraticSieve extends PrimeFactoring {
                     smoothNumbers.put(t, a.add(root));
                     smoothNumbersPrimeFactors.put(t, pExp);
                     numSmoothNumbers++;
-                    if (numSmoothNumbers % 100 == 0)
+                    if (numSmoothNumbers % interval == 0)
                         System.out.println(numSmoothNumbers + " smooth numbers found");
                 }
             }
