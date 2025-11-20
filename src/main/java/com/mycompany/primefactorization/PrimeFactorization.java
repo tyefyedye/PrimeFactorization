@@ -6,10 +6,6 @@ package com.mycompany.primefactorization;
  * RSA Project
  */
 
-import com.mycompany.primefactorization.PollardPMinusOne;
-import com.mycompany.primefactorization.QuadraticSieve;
-import com.mycompany.primefactorization.PrimeFactoring;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.TreeMap;
@@ -48,9 +44,16 @@ public class PrimeFactorization {
                 System.out.printf("Number to factor: %d\n", a);
                 f = q.getFactor(a, bound);
                 f2 = a.divide(f);
-                System.out.printf("Factors found: [%d, %d]\n", f, f2);
-                checkIfPrimes(f, f2);
-                count = (limit != 0 ? count + 1 : 0);
+                if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
+                    System.out.println("No factors found. Incrementing bound.");
+                    numbersToFactor.add(a);
+                    bound = q.incrementBound();
+                } else {
+                    bound = Integer.parseInt(args[2]);
+                    System.out.printf("Factors found: [%d, %d]\n", f, f2);
+                    checkIfPrimes(f, f2);
+                    count = (limit != 0 ? count + 1 : 0);
+                }
             }
             printPrimeFactors(n);
         } 
@@ -63,7 +66,7 @@ public class PrimeFactorization {
         isPrime2 = pf.checkIfPrime(f2, 100000);
         if (isPrime){
             System.out.printf("%d is prime\n", f);
-            if (primeFactors.containsKey(f)) 
+            if (primeFactors.containsKey(f))
                 primeFactors.put(f, primeFactors.get(f).add(BI_ONE));
             else
                 primeFactors.put(f, BI_ONE);
@@ -72,8 +75,8 @@ public class PrimeFactorization {
         }
         if (isPrime2){
             System.out.printf("%d is prime\n", f2);
-            if (primeFactors.containsKey(f2)) 
-                primeFactors.put(f, primeFactors.get(f2).add(BI_ONE));
+            if (primeFactors.containsKey(f2))
+                primeFactors.put(f2, primeFactors.get(f2).add(BI_ONE));
             else
                 primeFactors.put(f2, BI_ONE);
         } else {

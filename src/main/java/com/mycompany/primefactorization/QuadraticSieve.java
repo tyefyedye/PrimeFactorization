@@ -16,10 +16,12 @@ import java.util.Arrays;
 import java.util.TreeMap;
 
 public class QuadraticSieve extends PrimeFactoring {
+    private final BigInteger BI_THREE = BigInteger.valueOf(3);
+    private final BigInteger BI_NINE = BigInteger.valueOf(9);
+    private final BigInteger BI_TEN = BigInteger.valueOf(10);
+    
     private ArrayList<Integer> dependents = new ArrayList();
-    public final BigInteger BI_THREE = BigInteger.valueOf(3);
-    public final BigInteger BI_NINE = BigInteger.valueOf(9);
-    public final BigInteger BI_TEN = BigInteger.valueOf(10);
+    private long lastBoundUsed;
     
     public QuadraticSieve(){ }
     
@@ -35,22 +37,31 @@ public class QuadraticSieve extends PrimeFactoring {
         TreeMap<BigInteger, double[]> smoothNumbersPrimeFactors = new TreeMap();
         
         System.out.println("Calculating bound...");
-        if (b == -1) bound = getBound(n) + 1; else bound = b;
+        if (b == -1) bound = getBound(n); else bound = b;
+        lastBoundUsed = bound;
         System.out.println("Bound B = " + bound);
-        System.out.println("Generating primes <= B...");
-        primes = sieveOfEratosthenes(bound + 1);
-        System.out.println(primes.size() + " primes found.");
         
-        System.out.println("Reducing primes to quadratic residues over N only...");
-        for (long prime : primes){
-            p = BigInteger.valueOf(prime);
-            pMinusOne = p.subtract(BI_ONE);
-            qr = n.modPow(pMinusOne.divide(BI_TWO), p);
-            if (qr.equals(BI_ONE)) factorBase.add(p);
+        int numFactors = 0;
+        while (numFactors < 7){
+             System.out.println("Generating primes <= B...");
+            primes = sieveOfEratosthenes(bound + 1);
+            System.out.println(primes.size() + " primes found.");
+
+            System.out.println("Reducing primes to quadratic residues over n...");
+            for (long prime : primes){
+                p = BigInteger.valueOf(prime);
+                pMinusOne = p.subtract(BI_ONE);
+                qr = n.modPow(pMinusOne.divide(BI_TWO), p);
+                if (qr.equals(BI_ONE) || qr.equals(BI_ZERO)) factorBase.add(p);
+            }
+            numFactors = factorBase.size();
+            System.out.println(numFactors + " quadratic residues found.");
+            if (numFactors < 7) {
+                System.out.println("Not enough quadratic residues found.");
+                factorBase.clear(); bound = bound + 10;
+                System.out.println("Trying bound B = " + bound);
+            }
         }
-        int numFactors = factorBase.size();
-        System.out.println(numFactors + " quadratic residues found.");
-        
 //        for(BigInteger f : factorBase) System.out.print(f + " ");
 //        System.out.println();
         
@@ -62,6 +73,8 @@ public class QuadraticSieve extends PrimeFactoring {
         BigInteger r1, r2;
         for (BigInteger fb : factorBase){
             if (fb.equals(BI_TWO)) roots.add(new Root(1, 2));
+            else if(n.mod(fb).equals(BI_ZERO)) 
+                roots.add(new Root(0,fb.longValue()));
             else {
                 squareRoots = tonelliShanks(n, fb);
                 r1 = squareRoots[0].subtract(a).mod(fb);
@@ -80,12 +93,11 @@ public class QuadraticSieve extends PrimeFactoring {
             root = BigInteger.valueOf(roots.get(i % numFactors).getRoot());
             t = polynomial(a, root, n);
             r = t;
-            if(!t.equals(BI_ZERO) && !smoothNumbers.containsKey(t)){
+            if(!smoothNumbers.containsKey(t)){
                 j = 0;
                 pExp = new double[numFactors];
                 Arrays.fill(pExp, 0);
-                
-                while (j < numFactors && !r.equals(BI_ONE)){
+                while (j < numFactors && !r.equals(BI_ZERO) && !r.equals(BI_ONE)){
                     f = factorBase.get(j);
                     if (!r.mod(f).equals(BI_ZERO)) j++;
                     else { r = r.divide(f); pExp[j] = (pExp[j] + 1) % 2; }
@@ -135,10 +147,13 @@ public class QuadraticSieve extends PrimeFactoring {
         
         System.out.println("Finding factor...");
         factor = findFactor(matrix, numFactors, smoothNumbers, n);
-        System.out.println("Factor found!");
+        if(!factor.equals(BI_ONE) || !factor.equals(n))
+            System.out.println("Factor found!");
         
         return factor;
     }
+    
+    public long incrementBound() { return lastBoundUsed + 10; }
     
     private BigInteger polynomial(BigInteger a, BigInteger i, BigInteger n) {
         BigInteger ai = a.add(i);
@@ -158,7 +173,6 @@ public class QuadraticSieve extends PrimeFactoring {
             }
             columns.add(DenseVector.valueOf(ml));
         }
-        
         
         for (int i = 0; i < length; i++){
             ix = 0; c = columns.get(i);
