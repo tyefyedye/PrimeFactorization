@@ -25,7 +25,8 @@ public class QuadraticSieve extends PrimeFactoring {
     
     public QuadraticSieve(){ }
     
-    public BigInteger getFactor(BigInteger n, long b, int interval){
+    public BigInteger getFactor(BigInteger n, long b, BigInteger lsb, 
+            BigInteger usb, boolean useShanksTonelli, int interval){
         if(n.equals(BI_NINE)) return BI_THREE;
         else if (n.compareTo(BI_TEN) == -1) return BI_TWO;
         
@@ -67,33 +68,37 @@ public class QuadraticSieve extends PrimeFactoring {
         
         a = n.sqrt();
 //        System.out.println(a);
-        
-        System.out.println("Getting roots over factor base...");
-        BigInteger[] squareRoots;
-        BigInteger r1, r2;
-        for (BigInteger fb : factorBase){
-            if (fb.equals(BI_TWO)) roots.add(new Root(1, 2));
-            else if(n.mod(fb).equals(BI_ZERO)) 
-                roots.add(new Root(0,fb.longValue()));
-            else {
-                squareRoots = tonelliShanks(n, fb);
-                r1 = squareRoots[0].subtract(a).mod(fb);
-                r2 = squareRoots[1].subtract(a).mod(fb);
-                roots.add(new Root(r1.longValue(), fb.longValue()));
-                roots.add(new Root(r2.longValue(), fb.longValue()));
+
+        if (useShanksTonelli) {
+            System.out.println("Getting roots over factor base...");
+            BigInteger[] squareRoots;
+            BigInteger r1, r2;
+            for (BigInteger fb : factorBase){
+                if (fb.equals(BI_TWO)) roots.add(new Root(1, 2));
+                else if(n.mod(fb).equals(BI_ZERO)) 
+                    roots.add(new Root(0,fb.longValue()));
+                else {
+                    squareRoots = tonelliShanks(n, fb);
+                    r1 = squareRoots[0].subtract(a).mod(fb).add(lsb);
+                    r2 = squareRoots[1].subtract(a).mod(fb).add(lsb);
+                    roots.add(new Root(r1.longValue(), fb.longValue()));
+                    roots.add(new Root(r2.longValue(), fb.longValue()));
+                }
             }
+            System.out.println("Roots found");
         }
-        System.out.println("Roots found");
         
         System.out.println("Finding smooth numbers...");
-        int numSmoothNumbers = 0, i = 0, j = 0;
-        BigInteger root, f, t, r;
+        int numSmoothNumbers = 0, i = 0, j = 0, c = 0;
+        boolean allRootsExceedUpperBound = false;
+        BigInteger root, f, t, r, sb = lsb;
         double[] pExp; 
-        while (numSmoothNumbers < numFactors){
-            root = BigInteger.valueOf(roots.get(i % numFactors).getRoot());
+        while ((useShanksTonelli ? !allRootsExceedUpperBound : !sb.equals(usb)) && numSmoothNumbers < numFactors){
+            root = (useShanksTonelli ? BigInteger.valueOf(roots.get(i % numFactors).getRoot()) : sb);
             t = polynomial(a, root, n);
             r = t;
-            if(!smoothNumbers.containsKey(t)){
+            if(root.compareTo(usb) != 1 && !smoothNumbers.containsKey(t)){
+                c++;
                 j = 0;
                 pExp = new double[numFactors];
                 Arrays.fill(pExp, 0);
@@ -110,18 +115,23 @@ public class QuadraticSieve extends PrimeFactoring {
                         System.out.println(numSmoothNumbers + " smooth numbers found");
                 }
             }
-            roots.set(i % numFactors, roots.get(i % numFactors).incrementRoot());
-            i++;
+            if (useShanksTonelli){
+                roots.set(i % numFactors, roots.get(i % numFactors).incrementRoot());
+                i++;
+                if (c == 0) allRootsExceedUpperBound = true; 
+                else if (i % numFactors == 0) c = 0;
+            } else sb = sb.add(BI_ONE);
         }
         System.out.println(numSmoothNumbers + " total smooth numbers found");
         
         System.out.println("Building matrix...");
         int k = 0; double[] arr;
-        double[][] matrix = new double[numFactors][numFactors];
+        double[][] matrix = new double[numFactors][numSmoothNumbers];
         for(BigInteger sn : smoothNumbers.keySet()){
             arr = smoothNumbersPrimeFactors.get(sn);
             if (arr != null) { /*System.out.println(sn + " " + smoothNumbers.get(sn));*/ matrix[k] = arr; k++; } 
         }
+        System.out.println("Matrix built");
         
 //        for (int g = 0; g < numFactors; g++){
 //            for (int h = 0; h < numFactors; h++){
@@ -132,7 +142,7 @@ public class QuadraticSieve extends PrimeFactoring {
         
         System.out.println("Performing Gaussian Elimination on matrix...");
         dependents.clear();
-        matrix = gaussianElimination(matrix, numSmoothNumbers);
+        matrix = gaussianElimination(matrix, numFactors, numSmoothNumbers);
         System.out.println("Gaussian Elimination complete");
         
 //        for (int g = 0; g < numFactors; g++){
@@ -146,9 +156,11 @@ public class QuadraticSieve extends PrimeFactoring {
 //        System.out.println();
         
         System.out.println("Finding factor...");
-        factor = findFactor(matrix, numFactors, smoothNumbers, n);
-        if(!factor.equals(BI_ONE) || !factor.equals(n))
+        factor = findFactor(matrix, numFactors, numSmoothNumbers, smoothNumbers, n);
+        if(!factor.equals(BI_ONE) && !factor.equals(n)){
+            System.out.println(factor);
             System.out.println("Factor found!");
+        }
         
         return factor;
     }
@@ -160,24 +172,24 @@ public class QuadraticSieve extends PrimeFactoring {
         return ai.pow(2).subtract(n);
     }
     
-    private double[][] gaussianElimination(double[][] matrix, int length){
+    private double[][] gaussianElimination(double[][] matrix, int len1, int len2){
         ModuloInteger.setModulus(LargeInteger.valueOf(2));
         int ix; DenseVector<ModuloInteger> c, r, a;
         ArrayList<DenseVector<ModuloInteger>> columns = new ArrayList();
-        boolean markedRows[] = new boolean[length]; Arrays.fill(markedRows, false);
+        boolean markedRows[] = new boolean[len1]; Arrays.fill(markedRows, false);
 
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < len2; i++) {
             ArrayList<ModuloInteger> ml = new ArrayList<ModuloInteger>();
-            for (int j = 0; j < length; j++) {
+            for (int j = 0; j < len1; j++) {
                 ml.add(matrix[j][i] == 1 ? MI_1 : MI_0);
             }
             columns.add(DenseVector.valueOf(ml));
         }
         
-        for (int i = 0; i < length; i++){
+        for (int i = 0; i < len2; i++){
             ix = 0; c = columns.get(i);
-            while (ix < length && !c.get(ix).equals(MI_1)) ix++;
-            if (ix < length) {
+            while (ix < len2 && !c.get(ix).equals(MI_1)) ix++;
+            if (ix < len2) {
                 markedRows[ix] = true;
                 for (int j = 0; j < columns.size(); j++){
                     r = columns.get(j);
@@ -185,15 +197,14 @@ public class QuadraticSieve extends PrimeFactoring {
                         a = r.plus(c);
                         columns.set(j, a);
                     }
-                        
                 }
             }
         }
         
-        double[][] newMatrix = new double[length][length];
-        for (int i = 0; i < length; i++) {
+        double[][] newMatrix = new double[len1][len2];
+        for (int i = 0; i < len2; i++) {
             DenseVector<ModuloInteger> dv = columns.get(i);
-            for (int j = 0; j < length; j++) {
+            for (int j = 0; j < len1; j++) {
                 newMatrix[j][i] = dv.get(j).equals(MI_1) ? 1 : 0;
             }
             if (!markedRows[i]) dependents.add(i);
@@ -202,7 +213,7 @@ public class QuadraticSieve extends PrimeFactoring {
         return newMatrix;
     }
     
-    private BigInteger findFactor(double[][] matrix, int length,
+    private BigInteger findFactor(double[][] matrix, int len1, int len2,
         TreeMap<BigInteger, BigInteger> smoothNumbers, BigInteger n) {
         BigInteger factor = BI_ONE, smooth = BI_ONE, product = BI_ONE, sqrtProduct = BI_ONE;
         ArrayList<DenseVector<ModuloInteger>> rows = new ArrayList<DenseVector<ModuloInteger>>();
@@ -210,9 +221,9 @@ public class QuadraticSieve extends PrimeFactoring {
         int ix = 0, d = 0, numDependents = dependents.size(); boolean factorFound = false;
         ModuloInteger.setModulus(LargeInteger.valueOf(2));
         
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < len1; i++) {
             ArrayList<ModuloInteger> ml = new ArrayList<ModuloInteger>();
-            for (int j = 0; j < length; j++) {
+            for (int j = 0; j < len2; j++) {
                 ml.add(matrix[i][j] == 1 ? MI_1 : MI_0);
             }
             rows.add(DenseVector.valueOf(ml));

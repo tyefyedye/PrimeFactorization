@@ -20,7 +20,10 @@ public class PrimeFactorization {
         String method = args[1];
         long bound = Integer.parseInt(args[2]);
         int limit = Integer.parseInt(args[3]);
-        int interval = Integer.parseInt(args[4]);
+        BigInteger lowerSieveBound = new BigInteger(args[4]);
+        BigInteger upperSieveBound = new BigInteger(args[5]);
+        boolean useShanksTonelli = Boolean.parseBoolean(args[6]);
+        int interval = Integer.parseInt(args[7]);
         BigInteger a, f, f2;
 
         int count = 0;
@@ -43,7 +46,7 @@ public class PrimeFactorization {
             while((limit != 0 ? count < limit : true) && !numbersToFactor.isEmpty()){
                 a = numbersToFactor.removeFirst();
                 System.out.printf("Number to factor: %d\n", a);
-                f = q.getFactor(a, bound, interval);
+                f = q.getFactor(a, bound, lowerSieveBound, upperSieveBound, useShanksTonelli, interval);
                 f2 = a.divide(f);
                 if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
                     System.out.println("No factors found. Incrementing bound.");
