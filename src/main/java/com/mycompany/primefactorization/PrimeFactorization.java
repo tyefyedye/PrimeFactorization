@@ -9,6 +9,7 @@ package com.mycompany.primefactorization;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.Scanner;
 
 public class PrimeFactorization {
     private final static BigInteger BI_ONE = BigInteger.ONE;
@@ -24,7 +25,8 @@ public class PrimeFactorization {
         int threshold = Integer.parseInt(args[5]);
         BigInteger a, f, f2;
 
-        int count = 0;
+        int count = 0; String whatToIncrement;
+        Scanner input = new Scanner(System.in);
         if(method.equals("pollard")) {
             numbersToFactor.add(n);
             PollardPMinusOne pollard = new PollardPMinusOne(bound);
@@ -47,9 +49,16 @@ public class PrimeFactorization {
                 f = q.getFactor(a, bound, range, threshold);
                 f2 = a.divide(f);
                 if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
-                    System.out.println("No factors found. Incrementing bound.");
+                    System.out.print("No factors found. Increment bound or range? ");
+                    whatToIncrement = input.nextLine();
+                    if (whatToIncrement.equals("bound")){
+                        System.out.print("Input new bound: ");
+                        bound = input.nextLong();
+                    } else if (whatToIncrement.equals("range")){
+                        System.out.print("Input new range: ");
+                        range = input.nextInt();
+                    }
                     numbersToFactor.add(a);
-                    bound = q.incrementBound();
                 } else {
                     bound = Integer.parseInt(args[2]);
                     System.out.printf("Factors found: [%d, %d]\n", f, f2);
@@ -57,6 +66,7 @@ public class PrimeFactorization {
                     count = (limit != 0 ? count + 1 : 0);
                 }
             }
+            input.close();
             printPrimeFactors(n);
         }
     }
