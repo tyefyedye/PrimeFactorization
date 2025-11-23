@@ -20,10 +20,8 @@ public class PrimeFactorization {
         String method = args[1];
         long bound = Integer.parseInt(args[2]);
         int limit = Integer.parseInt(args[3]);
-        BigInteger lowerSieveBound = new BigInteger(args[4]);
-        BigInteger upperSieveBound = new BigInteger(args[5]);
-        boolean useShanksTonelli = Boolean.parseBoolean(args[6]);
-        int interval = Integer.parseInt(args[7]);
+        int range = Integer.parseInt(args[4]);
+        int threshold = Integer.parseInt(args[5]);
         BigInteger a, f, f2;
 
         int count = 0;
@@ -35,7 +33,7 @@ public class PrimeFactorization {
                 System.out.printf("Number to factor: %d\n", a);
                 f = pollard.getFactor(a);
                 f2 = a.divide(f);
-                System.out.printf("Factors found: [%d, %d]\n", f, f2);
+                System.out.printf("Returned factors: [%d, %d]\n", f, f2);
                 checkIfPrimes(f, f2);
                 count = (limit != 0 ? count + 1 : 0);
             }
@@ -46,7 +44,7 @@ public class PrimeFactorization {
             while((limit != 0 ? count < limit : true) && !numbersToFactor.isEmpty()){
                 a = numbersToFactor.removeFirst();
                 System.out.printf("Number to factor: %d\n", a);
-                f = q.getFactor(a, bound, lowerSieveBound, upperSieveBound, useShanksTonelli, interval);
+                f = q.getFactor(a, bound, range, threshold);
                 f2 = a.divide(f);
                 if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
                     System.out.println("No factors found. Incrementing bound.");
@@ -60,9 +58,9 @@ public class PrimeFactorization {
                 }
             }
             printPrimeFactors(n);
-        } 
+        }
     }
-    
+ 
     public static void checkIfPrimes(BigInteger f, BigInteger f2){
         PrimeFactoring pf = new PrimeFactoring();
         boolean isPrime = false, isPrime2 = false;

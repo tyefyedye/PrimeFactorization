@@ -93,17 +93,22 @@ public class PrimeFactoring {
         return randNum;
     }
     
-    public long getBound(BigInteger n){
+    public double bigIntegerNaturalLog(BigInteger n){
         int numDigits = n.toString().length();
         
         BigDecimal bd = new BigDecimal(n);
         double val = bd.divide(BI_TEN.pow(numDigits)).doubleValue();
-        double logN = numDigits * Math.log(10) + Math.log(val);
+        return numDigits * Math.log(10) + Math.log(val);
+    }
+    
+    public long getBound(BigInteger n){
+        double logN = bigIntegerNaturalLog(n);
         
         double l = Math.exp(Math.sqrt(logN * Math.log(logN)));
         
         return (long) Math.ceil(Math.pow(l, 1/Math.sqrt(2)));
     }
+
     
     public boolean checkIfPrime(BigInteger n, int bound) {
         ArrayList<Long> primes = sieveOfEratosthenes(bound);
@@ -159,5 +164,9 @@ public class PrimeFactoring {
         String output = "[";
         for (int i = 0; i < arr.length-1; i++) output += ((int) arr[i]) + ", ";
         return output + ((int) arr[arr.length-1]) + "]";
+    }
+    
+    private BigInteger getRho(BigInteger x, BigInteger o, BigInteger n){
+        return x.pow(2).add(o).mod(n);
     }
 }

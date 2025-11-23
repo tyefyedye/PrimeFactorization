@@ -20,22 +20,21 @@ public class QuadraticSieve extends PrimeFactoring {
     private final BigInteger BI_NINE = BigInteger.valueOf(9);
     private final BigInteger BI_TEN = BigInteger.valueOf(10);
     
+    private TreeMap<BigInteger, BigInteger> smoothNumbers = new TreeMap();
+    private TreeMap<BigInteger, double[]> smoothNumbersPrimeFactors = new TreeMap();
     private ArrayList<Integer> dependents = new ArrayList();
     private long lastBoundUsed;
     
     public QuadraticSieve(){ }
     
-    public BigInteger getFactor(BigInteger n, long b, BigInteger lsb, 
-            BigInteger usb, boolean useShanksTonelli, int interval){
+    public BigInteger getFactor(BigInteger n, long b, int range, int threshold){
         if(n.equals(BI_NINE)) return BI_THREE;
         else if (n.compareTo(BI_TEN) == -1) return BI_TWO;
         
         long bound; ArrayList<Long> primes;
-        BigInteger p, pMinusOne, qr, a, factor;
+        BigInteger p, pMinusOne, qr, factor = BI_ONE;
+        int totalSmoothNumbers;
         ArrayList<BigInteger> factorBase = new ArrayList();
-        ArrayList<Root> roots = new ArrayList();
-        TreeMap<BigInteger, BigInteger> smoothNumbers = new TreeMap();
-        TreeMap<BigInteger, double[]> smoothNumbersPrimeFactors = new TreeMap();
         
         System.out.println("Calculating bound...");
         if (b == -1) bound = getBound(n); else bound = b;
@@ -53,7 +52,7 @@ public class QuadraticSieve extends PrimeFactoring {
                 p = BigInteger.valueOf(prime);
                 pMinusOne = p.subtract(BI_ONE);
                 qr = n.modPow(pMinusOne.divide(BI_TWO), p);
-                if (qr.equals(BI_ONE) || qr.equals(BI_ZERO)) factorBase.add(p);
+                if (qr.equals(BI_ONE)) factorBase.add(p);
             }
             numFactors = factorBase.size();
             System.out.println(numFactors + " quadratic residues found.");
@@ -63,102 +62,29 @@ public class QuadraticSieve extends PrimeFactoring {
                 System.out.println("Trying bound B = " + bound);
             }
         }
-//        for(BigInteger f : factorBase) System.out.print(f + " ");
-//        System.out.println();
-        
-        a = n.sqrt();
-//        System.out.println(a);
-
-        if (useShanksTonelli) {
-            System.out.println("Getting roots over factor base...");
-            BigInteger[] squareRoots;
-            BigInteger r1, r2;
-            for (BigInteger fb : factorBase){
-                if (fb.equals(BI_TWO)) roots.add(new Root(1, 2));
-                else if(n.mod(fb).equals(BI_ZERO)) 
-                    roots.add(new Root(0,fb.longValue()));
-                else {
-                    squareRoots = tonelliShanks(n, fb);
-                    r1 = squareRoots[0].subtract(a).mod(fb).add(lsb);
-                    r2 = squareRoots[1].subtract(a).mod(fb).add(lsb);
-                    roots.add(new Root(r1.longValue(), fb.longValue()));
-                    roots.add(new Root(r2.longValue(), fb.longValue()));
-                }
-            }
-            System.out.println("Roots found");
-        }
         
         System.out.println("Finding smooth numbers...");
-        int numSmoothNumbers = 0, i = 0, j = 0, c = 0;
-        boolean allRootsExceedUpperBound = false;
-        BigInteger root, f, t, r, sb = lsb;
-        double[] pExp; 
-        while ((useShanksTonelli ? !allRootsExceedUpperBound : !sb.equals(usb)) && numSmoothNumbers < numFactors){
-            root = (useShanksTonelli ? BigInteger.valueOf(roots.get(i % numFactors).getRoot()) : sb);
-            t = polynomial(a, root, n);
-            r = t;
-            if(root.compareTo(usb) != 1 && !smoothNumbers.containsKey(t)){
-                c++;
-                j = 0;
-                pExp = new double[numFactors];
-                Arrays.fill(pExp, 0);
-                while (j < numFactors && !r.equals(BI_ZERO) && !r.equals(BI_ONE)){
-                    f = factorBase.get(j);
-                    if (!r.mod(f).equals(BI_ZERO)) j++;
-                    else { r = r.divide(f); pExp[j] = (pExp[j] + 1) % 2; }
-                }
-                if (j < numFactors){
-                    smoothNumbers.put(t, a.add(root));
-                    smoothNumbersPrimeFactors.put(t, pExp);
-                    numSmoothNumbers++;
-                    if (numSmoothNumbers % interval == 0)
-                        System.out.println(numSmoothNumbers + " smooth numbers found");
-                }
-            }
-            if (useShanksTonelli){
-                roots.set(i % numFactors, roots.get(i % numFactors).incrementRoot());
-                i++;
-                if (c == 0) allRootsExceedUpperBound = true; 
-                else if (i % numFactors == 0) c = 0;
-            } else sb = sb.add(BI_ONE);
-        }
-        System.out.println(numSmoothNumbers + " total smooth numbers found");
-        
+        smoothNumbers.clear(); smoothNumbersPrimeFactors.clear();
+        totalSmoothNumbers = getSmoothNumbers(n, factorBase, range, threshold);
+        System.out.println(totalSmoothNumbers + " smooth numbers found");
+       
         System.out.println("Building matrix...");
         int k = 0; double[] arr;
-        double[][] matrix = new double[numFactors][numSmoothNumbers];
+        double[][] matrix = new double[totalSmoothNumbers][numFactors];
         for(BigInteger sn : smoothNumbers.keySet()){
             arr = smoothNumbersPrimeFactors.get(sn);
-            if (arr != null) { /*System.out.println(sn + " " + smoothNumbers.get(sn));*/ matrix[k] = arr; k++; } 
+            matrix[k] = arr; k++;
         }
         System.out.println("Matrix built");
-        
-//        for (int g = 0; g < numFactors; g++){
-//            for (int h = 0; h < numFactors; h++){
-//                System.out.print((int) matrix[g][h] + " ");
-//            }
-//            System.out.println();
-//        }
-        
+
         System.out.println("Performing Gaussian Elimination on matrix...");
         dependents.clear();
-        matrix = gaussianElimination(matrix, numFactors, numSmoothNumbers);
+        matrix = gaussianElimination(matrix, totalSmoothNumbers, numFactors);
         System.out.println("Gaussian Elimination complete");
-        
-//        for (int g = 0; g < numFactors; g++){
-//            for (int h = 0; h < numFactors; h++){
-//                System.out.print((int) matrix[g][h] + " ");
-//            }
-//            System.out.println();
-//        }
-//        
-//        for(int d : dependents) System.out.print(d + " ");
-//        System.out.println();
-        
+
         System.out.println("Finding factor...");
-        factor = findFactor(matrix, numFactors, numSmoothNumbers, smoothNumbers, n);
+        factor = findFactor(matrix, totalSmoothNumbers, numFactors, smoothNumbers, n);
         if(!factor.equals(BI_ONE) && !factor.equals(n)){
-            System.out.println(factor);
             System.out.println("Factor found!");
         }
         
@@ -167,33 +93,100 @@ public class QuadraticSieve extends PrimeFactoring {
     
     public long incrementBound() { return lastBoundUsed + 10; }
     
-    private BigInteger polynomial(BigInteger a, BigInteger i, BigInteger n) {
-        BigInteger ai = a.add(i);
-        return ai.pow(2).subtract(n);
+    private int getSmoothNumbers(BigInteger n, ArrayList<BigInteger> factorBase,
+            int range, int threshold){
+        int numFactors = factorBase.size(), usedRange = range, numCandidates = 999999;
+        BigInteger a = n.sqrt(), ix, num, f;
+        BigInteger[] polyNums = null; int[] sieve = null;
+        ArrayList<BigInteger> candidates = new ArrayList();
+        
+        while (numCandidates > 10000){
+            polyNums = new BigInteger[usedRange+1];
+            sieve = new int[usedRange+1];
+            for (int i = 0; i <= usedRange; i++){
+                ix = BigInteger.valueOf(i);
+                num = a.add(ix).modPow(BI_TWO, n);
+                polyNums[i] = num;
+                sieve[i] = num.bitLength();
+            }
+
+            int idxStart = factorBase.getFirst().equals(BI_TWO) ? 1 : 0;
+            BigInteger[] squareRoots; int logF, idx;
+            for (int i = idxStart; i < numFactors; i++){
+                f = factorBase.get(i);
+                squareRoots = tonelliShanks(n, f);
+                logF = f.bitLength();
+                for (BigInteger root : squareRoots){
+                    idx = root.subtract(a).mod(f).intValue();
+                    while (idx < usedRange) {
+                        sieve[idx] = sieve[idx] - logF;
+                        idx += f.intValue();
+                    }
+                }
+            }
+
+            for (int i = 0; i <= usedRange; i++)
+                if(sieve[i] < threshold) candidates.add(polyNums[i]);
+            
+            numCandidates = candidates.size();
+            if(numCandidates > 10000){
+                System.out.println("Too many candidates! Reducing range.");
+                candidates = new ArrayList();
+                usedRange = usedRange / 10;
+            } else System.out.println(candidates.size() + " candidates found");
+        }
+
+        double[] pExp; int j, numPosSmoothNumbers = 0; BigInteger r, i;
+        for(BigInteger c : candidates){
+            if (!smoothNumbers.containsKey(c)){
+                pExp = new double[numFactors];
+                Arrays.fill(pExp, 0);
+                j = 0;
+                r = c;
+                while (j < numFactors && !r.equals(BI_ZERO) && !r.equals(BI_ONE)){
+                    f = factorBase.get(j);
+                    if (!r.mod(f).equals(BI_ZERO)) j++;
+                    else { r = r.divide(f); pExp[j] = (pExp[j] + 1) % 2; }
+                }
+                if (j < numFactors){
+                    i = BigInteger.valueOf(getIndex(polyNums, c));
+                    smoothNumbers.put(c, a.add(i));
+                    smoothNumbersPrimeFactors.put(c, pExp);
+                    numPosSmoothNumbers++;
+                }
+            }
+        }
+        return numPosSmoothNumbers;
     }
     
-    private double[][] gaussianElimination(double[][] matrix, int len1, int len2){
+    private int getIndex(BigInteger[] nums, BigInteger numToSearch){
+        for (int i = 0; i < nums.length; i++)
+            if (nums[i].equals(numToSearch)) return i;
+        return -1;
+    }
+    
+    private double[][] gaussianElimination(double[][] matrix, int sm, int f){
         ModuloInteger.setModulus(LargeInteger.valueOf(2));
         int ix; DenseVector<ModuloInteger> c, r, a;
         ArrayList<DenseVector<ModuloInteger>> columns = new ArrayList();
-        boolean markedRows[] = new boolean[len1]; Arrays.fill(markedRows, false);
+        boolean markedRows[] = new boolean[sm]; Arrays.fill(markedRows, false);
 
-        for (int i = 0; i < len2; i++) {
-            ArrayList<ModuloInteger> ml = new ArrayList<ModuloInteger>();
-            for (int j = 0; j < len1; j++) {
+        for (int i = 0; i < f; i++) {
+            ArrayList<ModuloInteger> ml = new ArrayList();
+            for (int j = 0; j < sm; j++) {
                 ml.add(matrix[j][i] == 1 ? MI_1 : MI_0);
             }
             columns.add(DenseVector.valueOf(ml));
         }
-        
-        for (int i = 0; i < len2; i++){
+
+        for (int i = 0; i < f; i++){
             ix = 0; c = columns.get(i);
-            while (ix < len2 && !c.get(ix).equals(MI_1)) ix++;
-            if (ix < len2) {
+            while (ix < sm && !c.get(ix).equals(MI_1)) ix++;
+            if (ix < sm) {
                 markedRows[ix] = true;
-                for (int j = 0; j < columns.size(); j++){
+                for (int j = 0; j < f; j++){
                     r = columns.get(j);
-                    if (!r.equals(c) && r.get(ix).equals(MI_1)){
+                    if (j != i && r.get(ix).equals(MI_1)){
                         a = r.plus(c);
                         columns.set(j, a);
                     }
@@ -201,14 +194,15 @@ public class QuadraticSieve extends PrimeFactoring {
             }
         }
         
-        double[][] newMatrix = new double[len1][len2];
-        for (int i = 0; i < len2; i++) {
+        double[][] newMatrix = new double[sm][f];
+        for (int i = 0; i < f; i++) {
             DenseVector<ModuloInteger> dv = columns.get(i);
-            for (int j = 0; j < len1; j++) {
+            for (int j = 0; j < sm; j++) {
                 newMatrix[j][i] = dv.get(j).equals(MI_1) ? 1 : 0;
             }
-            if (!markedRows[i]) dependents.add(i);
         }
+        
+        for (int d = 0; d < sm; d++) if (!markedRows[d]) dependents.add(d);
         
         return newMatrix;
     }
@@ -234,9 +228,6 @@ public class QuadraticSieve extends PrimeFactoring {
             zeroSumRows = getZeroSumRows(d, rows);
             
             smooth = product = sqrtProduct = BI_ONE;
-            
-//            for(int zsr : zeroSumRows) System.out.print(zsr + " ");
-//            System.out.println();
             
             for (int zsr : zeroSumRows) {
                 smooth = (BigInteger) smoothNumbers.keySet().toArray()[zsr];
