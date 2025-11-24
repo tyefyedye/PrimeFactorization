@@ -24,6 +24,7 @@ public class PrimeFactorization {
         int range = Integer.parseInt(args[4]);
         int threshold = Integer.parseInt(args[5]);
         int minCandidates = Integer.parseInt(args[6]);
+        int reductionRate = Integer.parseInt(args[7]);
         BigInteger a, f, f2;
 
         int count = 0; String whatToIncrement;
@@ -47,7 +48,7 @@ public class PrimeFactorization {
             while((limit != 0 ? count < limit : true) && !numbersToFactor.isEmpty()){
                 a = numbersToFactor.removeFirst();
                 System.out.printf("Number to factor: %d\n", a);
-                f = q.getFactor(a, bound, range, threshold, minCandidates);
+                f = q.getFactor(a, bound, range, threshold, minCandidates, reductionRate);
                 f2 = a.divide(f);
                 if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
                     System.out.print("No factors found. Increment bound range, threshold, or candidates?? ");

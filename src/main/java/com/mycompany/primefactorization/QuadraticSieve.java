@@ -23,11 +23,11 @@ public class QuadraticSieve extends PrimeFactoring {
     private TreeMap<BigInteger, BigInteger> smoothNumbers = new TreeMap();
     private TreeMap<BigInteger, double[]> smoothNumbersPrimeFactors = new TreeMap();
     private ArrayList<Integer> dependents = new ArrayList();
-    private long lastBoundUsed;
     
     public QuadraticSieve(){ }
     
-    public BigInteger getFactor(BigInteger n, long b, int range, int threshold, int minCandidates){
+    public BigInteger getFactor(BigInteger n, long b, int range, int threshold,
+            int minCandidates, int reductionRate){
         if(n.equals(BI_NINE)) return BI_THREE;
         else if (n.compareTo(BI_TEN) == -1) return BI_TWO;
         
@@ -38,7 +38,6 @@ public class QuadraticSieve extends PrimeFactoring {
         
         System.out.println("Calculating bound...");
         if (b == -1) bound = getBound(n); else bound = b;
-        lastBoundUsed = bound;
         System.out.println("Bound B = " + bound);
         
         int numFactors = 0;
@@ -65,7 +64,8 @@ public class QuadraticSieve extends PrimeFactoring {
         
         System.out.println("Finding smooth numbers...");
         smoothNumbers.clear(); smoothNumbersPrimeFactors.clear();
-        totalSmoothNumbers = getSmoothNumbers(n, factorBase, range, threshold, minCandidates);
+        totalSmoothNumbers = getSmoothNumbers(n, factorBase, range, threshold,
+                minCandidates, reductionRate);
         System.out.println(totalSmoothNumbers + " smooth numbers found");
        
         System.out.println("Building matrix...");
@@ -91,10 +91,8 @@ public class QuadraticSieve extends PrimeFactoring {
         return factor;
     }
     
-    public long incrementBound() { return lastBoundUsed + 10; }
-    
     private int getSmoothNumbers(BigInteger n, ArrayList<BigInteger> factorBase,
-            int range, int threshold, int minCandidates){
+            int range, int threshold, int minCandidates, int reductionRate){
         int numFactors = factorBase.size(), usedRange = range, numCandidates = 999999;
         BigInteger a = n.sqrt(), ix, num, f;
         BigInteger[] polyNums = null; int[] sieve = null;
@@ -132,7 +130,7 @@ public class QuadraticSieve extends PrimeFactoring {
             if(numCandidates > minCandidates){
                 System.out.println("Too many candidates! (" + numCandidates + ") Reducing range.");
                 candidates = new ArrayList();
-                usedRange = usedRange / 10;
+                usedRange = usedRange / reductionRate;
             } else System.out.println(candidates.size() + " candidates found");
         }
 
