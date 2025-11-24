@@ -92,10 +92,12 @@ public class QuadraticSieve extends PrimeFactoring {
     }
     
     private int getSmoothNumbers(BigInteger n, ArrayList<BigInteger> factorBase,
-            int range, int threshold, int minCandidates, int reductionRate){
-        int numFactors = factorBase.size(), usedRange = range, numCandidates = 999999;
+            int range, int threshold, long minCandidates, int reductionRate){
+        int numFactors = factorBase.size(), usedRange = range;
+        long numCandidates = Long.MAX_VALUE;
         BigInteger a = n.sqrt(), ix, num, f;
-        BigInteger[] polyNums = null; int[] sieve = null;
+        System.out.println(a);
+        BigInteger[] polyNums = null; int[] sieve = null, sieve2 = null;
         ArrayList<BigInteger> candidates = new ArrayList();
         
         while (numCandidates > minCandidates){
@@ -103,11 +105,11 @@ public class QuadraticSieve extends PrimeFactoring {
             sieve = new int[usedRange+1];
             for (int i = 0; i <= usedRange; i++){
                 ix = BigInteger.valueOf(i);
-                num = a.add(ix).modPow(BI_TWO, n);
+                num = a.add(ix).pow(2).subtract(n);
                 polyNums[i] = num;
                 sieve[i] = num.bitLength();
             }
-
+            
             int idxStart = factorBase.getFirst().equals(BI_TWO) ? 1 : 0;
             BigInteger[] squareRoots; int logF, idx;
             for (int i = idxStart; i < numFactors; i++){
@@ -116,7 +118,7 @@ public class QuadraticSieve extends PrimeFactoring {
                 logF = f.bitLength();
                 for (BigInteger root : squareRoots){
                     idx = root.subtract(a).mod(f).intValue();
-                    while (idx < usedRange) {
+                    while (idx < usedRange) {    
                         sieve[idx] = sieve[idx] - logF;
                         idx += f.intValue();
                     }
@@ -133,10 +135,15 @@ public class QuadraticSieve extends PrimeFactoring {
                 usedRange = usedRange / reductionRate;
             } else System.out.println(candidates.size() + " candidates found");
         }
+//        for (int s : sieve2) System.out.println(s);
+//        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//        for (int s : sieve) System.out.println(s);
 
         double[] pExp; int j, numSmoothNumbers = 0; BigInteger r, i;
         for(BigInteger c : candidates){
             if (!smoothNumbers.containsKey(c)){
+//                i = BigInteger.valueOf(getIndex(polyNums, c));
+//                System.out.println(c + " " + i);
                 pExp = new double[numFactors];
                 Arrays.fill(pExp, 0);
                 j = 0;

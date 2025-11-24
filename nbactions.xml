@@ -12,7 +12,7 @@
             <properties>
                 <exec.vmArgs></exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>3293236232122918248566806821124884872382331326546021630627707425291 quadratic 150000 0 10000000 150 50000</exec.appArgs>
+                <exec.appArgs>3293236232122918248566806821124884872382331326546021630627707425291 quadratic 200000 0 20000000 200 50000 5</exec.appArgs>
                 <exec.mainClass>${packageClassName}</exec.mainClass>
                 <exec.executable>java</exec.executable>
             </properties>
@@ -29,7 +29,7 @@
             <properties>
                 <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>3293236232122918248566806821124884872382331326546021630627707425291 quadratic 150000 0 10000000 150 50000</exec.appArgs>
+                <exec.appArgs>3293236232122918248566806821124884872382331326546021630627707425291 quadratic 200000 0 20000000 200 50000 5</exec.appArgs>
                 <exec.mainClass>${packageClassName}</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
@@ -49,7 +49,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.mainClass>${packageClassName}</exec.mainClass>
                 <exec.executable>java</exec.executable>
-                <exec.appArgs>3293236232122918248566806821124884872382331326546021630627707425291 quadratic 150000 0 10000000 150 50000</exec.appArgs>
+                <exec.appArgs>3293236232122918248566806821124884872382331326546021630627707425291 quadratic 200000 0 20000000 200 50000 5</exec.appArgs>
             </properties>
         </action>
     </actions>

@@ -51,7 +51,7 @@ public class PrimeFactorization {
                 f = q.getFactor(a, bound, range, threshold, minCandidates, reductionRate);
                 f2 = a.divide(f);
                 if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
-                    System.out.print("No factors found. Increment bound range, threshold, or candidates?? ");
+                    System.out.print("No factors found. Increment bound, range, threshold, or candidates?? ");
                     whatToIncrement = input.nextLine();
                     if (whatToIncrement.equals("bound")){
                         System.out.print("Input new bound: ");
@@ -63,7 +63,7 @@ public class PrimeFactorization {
                         System.out.print("Input new threshold: ");
                         threshold = input.nextInt();
                     } else if (whatToIncrement.equals("candidates")){
-                        System.out.print("Input new candidates: ");
+                        System.out.print("Input new minimum number of candidates: ");
                         minCandidates = input.nextInt();
                     }
                     numbersToFactor.add(a);
