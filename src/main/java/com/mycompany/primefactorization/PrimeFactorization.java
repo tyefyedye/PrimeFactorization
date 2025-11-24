@@ -23,6 +23,7 @@ public class PrimeFactorization {
         int limit = Integer.parseInt(args[3]);
         int range = Integer.parseInt(args[4]);
         int threshold = Integer.parseInt(args[5]);
+        int minCandidates = Integer.parseInt(args[6]);
         BigInteger a, f, f2;
 
         int count = 0; String whatToIncrement;
@@ -46,16 +47,22 @@ public class PrimeFactorization {
             while((limit != 0 ? count < limit : true) && !numbersToFactor.isEmpty()){
                 a = numbersToFactor.removeFirst();
                 System.out.printf("Number to factor: %d\n", a);
-                f = q.getFactor(a, bound, range, threshold);
+                f = q.getFactor(a, bound, range, threshold, minCandidates);
                 f2 = a.divide(f);
                 if (f.equals(BI_ONE) || f2.equals(BI_ONE)){
-                    System.out.print("No factors found. Increment bound or range? ");
+                    System.out.print("No factors found. Increment bound range, threshold, or candidates?? ");
                     whatToIncrement = input.nextLine();
                     if (whatToIncrement.equals("bound")){
                         System.out.print("Input new bound: ");
                         bound = input.nextLong();
                     } else if (whatToIncrement.equals("range")){
                         System.out.print("Input new range: ");
+                        range = input.nextInt();
+                    } else if (whatToIncrement.equals("threshold")){
+                        System.out.print("Input new threshold: ");
+                        range = input.nextInt();
+                    } else if (whatToIncrement.equals("candidates")){
+                        System.out.print("Input new candidates: ");
                         range = input.nextInt();
                     }
                     numbersToFactor.add(a);

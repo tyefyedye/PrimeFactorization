@@ -27,7 +27,7 @@ public class QuadraticSieve extends PrimeFactoring {
     
     public QuadraticSieve(){ }
     
-    public BigInteger getFactor(BigInteger n, long b, int range, int threshold){
+    public BigInteger getFactor(BigInteger n, long b, int range, int threshold, int minCandidates){
         if(n.equals(BI_NINE)) return BI_THREE;
         else if (n.compareTo(BI_TEN) == -1) return BI_TWO;
         
@@ -65,7 +65,7 @@ public class QuadraticSieve extends PrimeFactoring {
         
         System.out.println("Finding smooth numbers...");
         smoothNumbers.clear(); smoothNumbersPrimeFactors.clear();
-        totalSmoothNumbers = getSmoothNumbers(n, factorBase, range, threshold);
+        totalSmoothNumbers = getSmoothNumbers(n, factorBase, range, threshold, minCandidates);
         System.out.println(totalSmoothNumbers + " smooth numbers found");
        
         System.out.println("Building matrix...");
@@ -94,13 +94,13 @@ public class QuadraticSieve extends PrimeFactoring {
     public long incrementBound() { return lastBoundUsed + 10; }
     
     private int getSmoothNumbers(BigInteger n, ArrayList<BigInteger> factorBase,
-            int range, int threshold){
+            int range, int threshold, int minCandidates){
         int numFactors = factorBase.size(), usedRange = range, numCandidates = 999999;
         BigInteger a = n.sqrt(), ix, num, f;
         BigInteger[] polyNums = null; int[] sieve = null;
         ArrayList<BigInteger> candidates = new ArrayList();
         
-        while (numCandidates > 10000){
+        while (numCandidates > minCandidates){
             polyNums = new BigInteger[usedRange+1];
             sieve = new int[usedRange+1];
             for (int i = 0; i <= usedRange; i++){
