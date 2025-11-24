@@ -129,14 +129,14 @@ public class QuadraticSieve extends PrimeFactoring {
                 if(sieve[i] < threshold) candidates.add(polyNums[i]);
             
             numCandidates = candidates.size();
-            if(numCandidates > 10000){
+            if(numCandidates > minCandidates){
                 System.out.println("Too many candidates! (" + numCandidates + ") Reducing range.");
                 candidates = new ArrayList();
                 usedRange = usedRange / 10;
             } else System.out.println(candidates.size() + " candidates found");
         }
 
-        double[] pExp; int j, numPosSmoothNumbers = 0; BigInteger r, i;
+        double[] pExp; int j, numSmoothNumbers = 0; BigInteger r, i;
         for(BigInteger c : candidates){
             if (!smoothNumbers.containsKey(c)){
                 pExp = new double[numFactors];
@@ -152,11 +152,11 @@ public class QuadraticSieve extends PrimeFactoring {
                     i = BigInteger.valueOf(getIndex(polyNums, c));
                     smoothNumbers.put(c, a.add(i));
                     smoothNumbersPrimeFactors.put(c, pExp);
-                    numPosSmoothNumbers++;
+                    numSmoothNumbers++;
                 }
             }
         }
-        return numPosSmoothNumbers;
+        return numSmoothNumbers;
     }
     
     private int getIndex(BigInteger[] nums, BigInteger numToSearch){
