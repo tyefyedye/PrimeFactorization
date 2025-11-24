@@ -130,7 +130,7 @@ public class QuadraticSieve extends PrimeFactoring {
             
             numCandidates = candidates.size();
             if(numCandidates > 10000){
-                System.out.println("Too many candidates! Reducing range.");
+                System.out.println("Too many candidates! (" + numCandidates + ") Reducing range.");
                 candidates = new ArrayList();
                 usedRange = usedRange / 10;
             } else System.out.println(candidates.size() + " candidates found");
