@@ -61,10 +61,10 @@ public class PrimeFactorization {
                         range = input.nextInt();
                     } else if (whatToIncrement.equals("threshold")){
                         System.out.print("Input new threshold: ");
-                        range = input.nextInt();
+                        threshold = input.nextInt();
                     } else if (whatToIncrement.equals("candidates")){
                         System.out.print("Input new candidates: ");
-                        range = input.nextInt();
+                        minCandidates = input.nextInt();
                     }
                     numbersToFactor.add(a);
                 } else {
